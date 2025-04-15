@@ -2,6 +2,8 @@ import { z } from "zod";
 import { NOTES_FILE, ensure_file } from "../utils/ensure_file.js";
 import fs from "fs";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { ResourceTemplate } from "@modelcontextprotocol/sdk/server/mcp.js";
+
 // MCP server instance
 export const server = new McpServer({
   name: "AI Sticky Notes",
@@ -51,3 +53,47 @@ server.tool(
     };
   }
 );
+
+// Resource
+server.resource(
+  "latest-notes",
+  new ResourceTemplate("notes://latest", { list: undefined }),
+  async (uri) => {
+    ensure_file();
+    // Read the file content synchronously
+    const data = fs.readFileSync(NOTES_FILE, "utf8").split("\n");
+    const lastLine =
+      data.length > 0 ? data[data.length - 1].trim() : "No notes yet.";
+    return {
+      contents: [
+        {
+          uri: uri.href,
+          text: lastLine,
+        },
+      ],
+    };
+  }
+);
+
+// Prompt
+server.prompt("summarize-note", {}, () => {
+  ensure_file();
+
+  const content = fs.readFileSync(NOTES_FILE, "utf8").trim();
+
+  const responseContent = content
+    ? `Please summarize this text \n\n ${content.split("\n").join("\n")}`
+    : "There are no notes yet.";
+
+  return {
+    messages: [
+      {
+        role: "user",
+        content: {
+          type: "text",
+          text: responseContent,
+        },
+      },
+    ],
+  };
+});
