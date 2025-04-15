@@ -9,11 +9,12 @@
     "typescript": "^5.0.0"
   },
   "scripts": {
-    "build": "tsc && chmod +x  build/*.js",
-    "start": "npm run build && node build/index.js"
+    "build": "tsc && chmod +x  dist/*.js",
+    "start": "npm run build && node dist/index.js"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.9.0",
+    "notes": ".",
     "zod": "^3.24.2"
   }
 }
